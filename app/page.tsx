@@ -105,6 +105,7 @@ function ChoiceGroup({ entry, label, options, required = false, kind = "radio", 
       (control): control is HTMLInputElement => control instanceof HTMLInputElement && control.name === name,
     );
     const hasSelection = group.some((control) => control.checked);
+    if (group[0]) group[0].required = !hasSelection;
     group[0]?.setCustomValidity(hasSelection ? "" : "Choose at least one option.");
   }
 
@@ -263,7 +264,15 @@ export default function Home() {
             {sections.map(([id, label], index) => <a href={`#${id}`} key={id}><span>{String(index + 1).padStart(2, "0")}</span>{label}</a>)}
           </nav>
 
-          <form ref={formRef} action={googleForm.actionUrl} method="POST" target="google-form-response" onSubmit={handleSubmit}>
+          <form ref={formRef} action={googleForm.actionUrl} method="POST" target="google-form-response" onSubmit={handleSubmit} onReset={() => {
+            for (const entry of [googleForm.entries.platforms, googleForm.entries.objectives]) {
+              const first = formRef.current?.querySelector<HTMLInputElement>(`input[name="${entry}"]`);
+              if (first) {
+                first.required = true;
+                first.setCustomValidity("");
+              }
+            }
+          }}>
             <div className="form-content">
               <Section number="01" id="context" title="Organisation context" intro="Enough context to interpret the interview without requiring personal details.">
                 <div className="field-grid two-col">
